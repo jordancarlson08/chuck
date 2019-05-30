@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
  ~ Copyright (C) 2017 Jeff Gilfelt.
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,31 +13,77 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
  -->
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scrollbars="vertical"
+    tools:background="@color/white"
     tools:context=".internal.ui.TransactionPayloadFragment">
 
-    <LinearLayout
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/headers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:textIsSelectable="true" />
+
+            <TextView
+                android:id="@+id/body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textIsSelectable="true" />
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+    <TextView
+        android:id="@+id/resultCount"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:orientation="vertical" >
+        android:text="12/45"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@id/next"
+        app:layout_constraintEnd_toStartOf="@id/previous"
+        app:layout_constraintTop_toTopOf="@id/next"
+        tools:visibility="visible" />
 
-        <TextView
-            android:id="@+id/headers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textIsSelectable="true"/>
+    <ImageButton
+        android:id="@+id/previous"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/chuck_ic_up_black_24dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toStartOf="@id/next"
+        app:layout_constraintTop_toTopOf="@id/next"
+        tools:visibility="visible" />
 
-        <TextView
-            android:id="@+id/body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textIsSelectable="true"/>
+    <ImageButton
+        android:id="@+id/next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/chuck_ic_down_black_24dp"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
 
-    </LinearLayout>
+        tools:visibility="visible" />
 
-</android.support.v4.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

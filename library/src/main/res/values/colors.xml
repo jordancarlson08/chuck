@@ -25,4 +25,7 @@
     <color name="chuck_status_500">#B71C1C</color>
     <color name="chuck_status_400">#FF9800</color>
     <color name="chuck_status_300">#0D47A1</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>

@@ -15,23 +15,32 @@
  */
 package com.readystatesoftware.chuck.internal.ui;
 
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.SearchView;
 import android.text.Html;
 import android.text.TextUtils;
+import android.text.style.BackgroundColorSpan;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.readystatesoftware.chuck.R;
 import com.readystatesoftware.chuck.internal.data.HttpTransaction;
 import com.readystatesoftware.chuck.internal.support.SearchHighlightUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransactionPayloadFragment extends Fragment implements TransactionFragment, SearchView.OnQueryTextListener {
 
@@ -42,6 +51,13 @@ public class TransactionPayloadFragment extends Fragment implements TransactionF
 
     TextView headers;
     TextView body;
+    TextView resultCount;
+    ImageButton next;
+    ImageButton previous;
+    NestedScrollView scrollView;
+    List<BackgroundColorSpan> spans = new ArrayList<>();
+
+    Integer index = null;
 
     private int type;
     private HttpTransaction transaction;
@@ -67,12 +83,59 @@ public class TransactionPayloadFragment extends Fragment implements TransactionF
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.chuck_fragment_transaction_payload, container, false);
-        headers = (TextView) view.findViewById(R.id.headers);
-        body = (TextView) view.findViewById(R.id.body);
+
+        scrollView = view.findViewById(R.id.scrollView);
+        headers = view.findViewById(R.id.headers);
+        body = view.findViewById(R.id.body);
+        resultCount = view.findViewById(R.id.resultCount);
+        next = view.findViewById(R.id.next);
+        previous = view.findViewById(R.id.previous);
+
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (index != null) {
+                    ++index;
+                    adjustIndexIfAtEnd(spans.size());
+                    moveToSpanAtIndex(index);
+                } else {
+                    index = 0;
+                    moveToSpanAtIndex(index);
+                }
+
+            }
+        });
+
+        previous.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (index != null) {
+                    --index;
+                    adjustIndexIfAtStart(spans.size());
+                    moveToSpanAtIndex(index);
+                } else {
+                    index = spans.size() - 1;
+                    moveToSpanAtIndex(index);
+                }
+
+            }
+        });
         return view;
+    }
+
+    private void adjustIndexIfAtStart(int size) {
+        if (index < 0) {
+            index = size - 1;
+        }
+    }
+
+    private void adjustIndexIfAtEnd(int size) {
+        if (index >= size) {
+            index = 0;
+        }
     }
 
     @Override
@@ -83,7 +146,7 @@ public class TransactionPayloadFragment extends Fragment implements TransactionF
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if(type == TYPE_RESPONSE){
+        if (type == TYPE_RESPONSE) {
             MenuItem searchMenuItem = menu.findItem(R.id.search);
             searchMenuItem.setVisible(true);
             SearchView searchView = (SearchView) searchMenuItem.getActionView();
@@ -135,10 +198,45 @@ public class TransactionPayloadFragment extends Fragment implements TransactionF
     @Override
     public boolean onQueryTextChange(String newText) {
         String text = body.getText().toString();
-        if (newText.trim().length() > 0 && text.contains(newText.trim()))
-            body.setText(SearchHighlightUtil.format(body.getText().toString(), newText));
-        else
+        next.setVisibility(View.VISIBLE);
+        previous.setVisibility(View.VISIBLE);
+        resultCount.setVisibility(View.VISIBLE);
+
+        index = null;
+        if (newText.trim().length() > 0 && text.contains(newText.trim())) {
+            spans = SearchHighlightUtil.format(body, body.getText().toString(), newText);
+            resultCount.setText("0/" + spans.size());
+        } else if (newText.trim().length() > 0) {
             body.setText(originalBody);
+            resultCount.setText("0/0");
+        } else {
+            body.setText(originalBody);
+            resultCount.setText("");
+
+            next.setVisibility(View.INVISIBLE);
+            previous.setVisibility(View.INVISIBLE);
+            resultCount.setVisibility(View.INVISIBLE);
+        }
         return true;
+    }
+
+    private void moveToSpanAtIndex(int index) {
+        String resultPosition = index + 1 + "/" + spans.size();
+        resultCount.setText(resultPosition);
+
+        String bodyText = body.getText().toString();
+
+        BackgroundColorSpan span = spans.get(index);
+
+        Rect rect = SearchHighlightUtil.matchLocation(getActivity().getWindowManager(), body, span);
+
+//        rect.bottom - half screen height
+        Log.d("SEARCH_RESULTS", "preScroll: index: " + index + " " + rect.bottom);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int adjusted = rect.bottom - (metrics.heightPixels / 2);
+        scrollView.smoothScrollTo(0, adjusted);
+
+
     }
 }
